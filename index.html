@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SchoolBase Ultra Pro Max + Plan</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SchoolBase">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/6c5ce7/ffffff?text=SB">
+    <meta name="theme-color" content="#1e293b">
+
+    <title>SchoolBase Ultra v7</title>
     <style>
         :root { 
             --primary: #6c5ce7; --bg: #f0f2f5; --card-bg: #ffffff; 
@@ -33,13 +40,19 @@
         .day-box { background: rgba(108, 92, 231, 0.05); border-radius: 15px; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
         .day-box.today { border: 2px solid var(--primary); background: rgba(108, 92, 231, 0.1); }
         .day-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .sub-entry { font-size: 14px; padding: 3px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .sub-entry { font-size: 14px; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         
         /* Admin */
         .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); z-index: 100; padding: 20px; border-radius: 24px; width: 95%; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 90; backdrop-filter: blur(8px); }
         .admin-sec { background: rgba(0,0,0,0.03); padding: 12px; border-radius: 15px; margin-bottom: 15px; }
         .dark-mode .admin-sec { background: rgba(255,255,255,0.05); }
+
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .container { padding: 15px; border-radius: 20px; }
+            .tab-btn { font-size: 10px; min-width: 70px; }
+        }
     </style>
 </head>
 <body class="dark-mode">
@@ -60,8 +73,10 @@
         <div id="hw-view" class="view active">
             <h2>Hausaufgaben</h2>
             <div class="input-group">
-                <input type="text" id="hw-task" placeholder="Was ist zu tun?">
-                <label style="font-size:13px;"><input type="checkbox" id="no-hw-check" onclick="toggleNoHw()"> Keine Hausaufgaben</label>
+                <input type="text" id="hw-task" placeholder="Aufgabe eintippen...">
+                <label style="font-size:13px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="no-hw-check" onclick="toggleNoHw()" style="width:18px; height:18px;"> Nichts aufbekommen ✅
+                </label>
                 <select id="hw-sub" class="subject-select"></select>
                 <button class="btn-add" onclick="addItem('hw')">Hinzufügen</button>
             </div>
@@ -69,7 +84,7 @@
         </div>
 
         <div id="exam-view" class="view">
-            <h2>Klassenarbeiten</h2>
+            <h2>Klassenarbeiten 📅</h2>
             <div class="input-group">
                 <input type="text" id="exam-name" placeholder="Thema">
                 <input type="date" id="exam-date">
@@ -81,8 +96,9 @@
 
         <div id="grade-view" class="view">
             <h2>Dein Schnitt ⭐</h2>
-            <div id="avg-display" style="font-weight:bold; color:var(--primary); text-align:center; font-size:28px;">--</div>
-            <div id="motivation-text" style="text-align:center; margin-bottom:20px; font-style:italic; font-size:14px; color:var(--accent);">Trag Noten ein!</div>
+            <div id="avg-display" style="font-weight:bold; color:var(--primary); text-align:center; font-size:32px; background:rgba(108,92,231,0.1); padding:10px; border-radius:15px; margin-bottom:5px;">--</div>
+            <div id="motivation-text" style="text-align:center; margin-bottom:20px; font-weight:bold; font-size:14px; color:var(--accent); min-height:20px;"></div>
+            
             <div class="input-group">
                 <input type="number" id="grade-val" placeholder="Note (1-6)" min="1" max="6" step="0.1">
                 <select id="grade-sub" class="subject-select"></select>
@@ -99,13 +115,13 @@
 
     <div id="overlay" class="overlay" onclick="closeAdmin()"></div>
     <div id="admin-panel" class="modal">
-        <h3>Admin & Plan Editor ⚙️</h3>
+        <h3 style="margin-top:0">Admin & Plan Center ⚙️</h3>
         
         <div class="admin-sec">
-            <h4>📅 Stundenplan ändern</h4>
-            <p style="font-size:11px;">Schreibe die Fächer getrennt durch Komma (z.B. Mathe, Mathe, Deutsch)</p>
+            <h4>📅 Plan bearbeiten</h4>
+            <p style="font-size:10px; opacity:0.7;">Fächer mit Komma trennen:</p>
             <div id="plan-editor-fields"></div>
-            <button class="btn-add" style="width:100%; margin-top:10px; background:var(--accent);" onclick="savePlanFromAdmin()">Plan Speichern</button>
+            <button class="btn-add" style="width:100%; background:var(--accent); margin-top:10px;" onclick="savePlanFromAdmin()">Speichern</button>
         </div>
 
         <div class="admin-sec">
@@ -119,19 +135,20 @@
     </div>
 
 <script>
-    const defaultPlan = {
-        "Montag": "Deutsch, Deutsch, Mathe, Mathe, Englisch, Klassenlehrerstunde",
-        "Dienstag": "Mathe, Mathe, Geschichte, Geschichte, Englisch, Englisch",
-        "Mittwoch": "Englisch, Englisch, Bio, Bio, Musik, Musik",
-        "Donnerstag": "Deutsch, Deutsch, Sport, Sport, Arbeitslehre, Arbeitslehre",
-        "Freitag": "Geo, Geo, Relie, Relie, Deutsch, Mathe"
-    };
-
-    let db = JSON.parse(localStorage.getItem('school_mega_v6') || JSON.stringify({
+    // Standarddaten (nur beim allerersten Mal)
+    const initData = {
         hw: [], exams: [], grades: [], 
         subjects: ["Mathe", "Deutsch", "Englisch", "Physik", "Bio", "Chemie", "Geschichte", "Musik", "Sport", "Arbeitslehre", "Geo", "Relie"],
-        plan: defaultPlan
-    }));
+        plan: {
+            "Montag": "Deutsch, Deutsch, Mathe, Mathe, Englisch, KL-Stunde",
+            "Dienstag": "Mathe, Mathe, Geschichte, Geschichte, Englisch, Englisch",
+            "Mittwoch": "Englisch, Englisch, Bio, Bio, Musik, Musik",
+            "Donnerstag": "Deutsch, Deutsch, Sport, Sport, Arbeitslehre, Arbeitslehre",
+            "Freitag": "Geo, Geo, Relie, Relie, Deutsch, Mathe"
+        }
+    };
+
+    let db = JSON.parse(localStorage.getItem('school_mega_v7') || JSON.stringify(initData));
 
     function showView(viewId, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -143,22 +160,21 @@
 
     function toggleNoHw() {
         const check = document.getElementById('no-hw-check');
-        document.getElementById('hw-task').value = check.checked ? "Keine Hausaufgaben ✅" : "";
-        document.getElementById('hw-task').disabled = check.checked;
+        const input = document.getElementById('hw-task');
+        input.value = check.checked ? "Keine Hausaufgaben ✅" : "";
+        input.disabled = check.checked;
     }
 
     function renderTimetable() {
         const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-        const todayIdx = new Date().getDay();
-        const todayName = days[todayIdx];
-        
+        const todayName = days[new Date().getDay()];
         let html = "";
         Object.keys(db.plan).forEach(day => {
             const isToday = day === todayName;
             const subs = db.plan[day].split(',').map(s => s.trim());
             html += `<div class="day-box ${isToday ? 'today' : ''}">
-                <div class="day-title">${day} ${isToday ? '<span>(Heute)</span>' : ''}</div>
-                ${subs.map((s, idx) => `<div class="sub-entry">${idx+1}. Stunde: <b>${s}</b></div>`).join('')}
+                <div class="day-title">${day} ${isToday ? '<span>(HEUTE)</span>' : ''}</div>
+                ${subs.map((s, idx) => s ? `<div class="sub-entry">${idx+1}. Std: <b>${s}</b></div>` : '').join('')}
             </div>`;
         });
         document.getElementById('timetable-display').innerHTML = html;
@@ -186,8 +202,8 @@
     }
 
     function renderAll() {
-        const selects = document.querySelectorAll('.subject-select');
-        selects.forEach(s => {
+        // Selects füllen
+        document.querySelectorAll('.subject-select').forEach(s => {
             const cur = s.value;
             s.innerHTML = db.subjects.map(sub => `<option value="${sub}">${sub}</option>`).join('');
             if(cur) s.value = cur;
@@ -196,14 +212,14 @@
         document.getElementById('hw-list').innerHTML = db.hw.map(i => `<div class="item"><span><b>${i.sub}:</b> ${i.text}</span><span onclick="remove('hw', ${i.id})">🗑️</span></div>`).join('');
         document.getElementById('exam-list').innerHTML = db.exams.map(i => `<div class="item"><div><b>${i.sub}</b><br><small>${i.date}</small></div><span onclick="remove('exams', ${i.id})">🗑️</span></div>`).join('');
         document.getElementById('grade-list').innerHTML = db.grades.map(i => {
-            let c = i.val <= 2 ? 'g-good' : (i.val <= 4 ? 'g-ok' : 'g-bad');
+            let c = i.val <= 2.0 ? 'g-good' : (i.val <= 4.0 ? 'g-ok' : 'g-bad');
             return `<div class="item"><span>${i.sub}</span><div style="display:flex; gap:10px;"><span class="grade-badge ${c}">${i.val}</span><span onclick="remove('grades', ${i.id})">🗑️</span></div></div>`;
         }).join('');
 
         if(db.grades.length > 0) {
             const avg = (db.grades.reduce((a, b) => a + b.val, 0) / db.grades.length).toFixed(2);
             document.getElementById('avg-display').innerText = avg;
-            updateMotivation(avg);
+            updateMotivation(parseFloat(avg));
         }
     }
 
@@ -212,8 +228,8 @@
         if(avg <= 1.5) msg = "Legendär! Du bist der Boss. 👑";
         else if(avg <= 2.5) msg = "Richtig stark, bleib dran! 🔥";
         else if(avg <= 3.5) msg = "Ganz okay, da geht noch was! 💪";
-        else if(avg <= 4.5) msg = "Kopf hoch, die nächste Arbeit wird besser! 📚";
-        else msg = "Jetzt musst du Gas geben! Ich glaub an dich. 🚀";
+        else if(avg <= 4.5) msg = "Kopf hoch, wird wieder! 📚";
+        else msg = "Jetzt musst du Gas geben! 🚀";
         document.getElementById('motivation-text').innerText = msg;
     }
 
@@ -221,33 +237,28 @@
         if(prompt("Passwort?") === "AdminPanelPasswort123!") {
             document.getElementById('admin-panel').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
-            
-            // Stundenplan Editor Felder
             let planHtml = "";
             Object.keys(db.plan).forEach(day => {
-                planHtml += `<div style="margin-bottom:8px;"><b>${day}:</b><br><textarea id="edit-plan-${day}" style="width:100%; padding:5px; font-size:12px; height:40px;">${db.plan[day]}</textarea></div>`;
+                planHtml += `<div style="margin-bottom:8px;"><b>${day}:</b><textarea id="edit-plan-${day}" style="width:100%; height:35px; font-size:12px;">${db.plan[day]}</textarea></div>`;
             });
             document.getElementById('plan-editor-fields').innerHTML = planHtml;
-
-            document.getElementById('admin-sub-list').innerHTML = db.subjects.map(s => `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:6px; font-size:12px;">${s} <b onclick="removeSubject('${s}')" style="cursor:pointer">×</b></span>`).join('');
+            document.getElementById('admin-sub-list').innerHTML = db.subjects.map(s => `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:6px; font-size:11px; margin:2px;">${s} <b onclick="removeSubject('${s}')" style="cursor:pointer">×</b></span>`).join('');
         }
     }
 
     function savePlanFromAdmin() {
-        Object.keys(db.plan).forEach(day => {
-            db.plan[day] = document.getElementById(`edit-plan-${day}`).value;
-        });
-        save(); alert("Plan wurde aktualisiert!"); renderTimetable();
+        Object.keys(db.plan).forEach(day => { db.plan[day] = document.getElementById(`edit-plan-${day}`).value; });
+        save(); alert("Gespeichert!"); renderTimetable();
     }
 
     function addNewSubject() {
-        const val = document.getElementById('new-sub-input').value.trim();
-        if(val && !db.subjects.includes(val)) { db.subjects.push(val); save(); renderAll(); openAdmin(); }
+        const v = document.getElementById('new-sub-input').value.trim();
+        if(v && !db.subjects.includes(v)) { db.subjects.push(v); save(); renderAll(); openAdmin(); }
     }
 
     function removeSubject(sub) { db.subjects = db.subjects.filter(s => s !== sub); save(); renderAll(); openAdmin(); }
     function remove(type, id) { db[type] = db[type].filter(i => i.id !== id); save(); renderAll(); }
-    function save() { localStorage.setItem('school_mega_v6', JSON.stringify(db)); }
+    function save() { localStorage.setItem('school_mega_v7', JSON.stringify(db)); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     function fullReset() { if(confirm("ALLES LÖSCHEN?")) { localStorage.clear(); location.reload(); } }
     function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
