@@ -3,277 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SchoolBase">
-    
     <link rel="apple-touch-icon" href="https://i.imgur.com/8N4X0Uf.png">
-    
-    <meta name="theme-color" content="#1e293b">
-
-    <title>SchoolBase Ultra v8</title>
+    <title>SchoolBase Pro</title>
     <style>
-        :root { 
-            --primary: #6c5ce7; --bg: #f0f2f5; --card-bg: #ffffff; 
-            --text: #2d3436; --border: #dfe6e9; --accent: #00b894;
-            --grade-1: #00b894; --grade-3: #fdcb6e; --grade-5: #ff7675;
-        }
-        .dark-mode { 
-            --bg: #0f172a; --card-bg: #1e293b; --text: #f1f5f9; 
-            --border: #334155; --primary: #818cf8;
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; min-height: 100vh; padding-bottom: 30px; }
-        .container { background: var(--card-bg); padding: 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; box-sizing: border-box; }
-        .top-bar { width: 100%; max-width: 500px; display: flex; justify-content: space-between; margin-bottom: 15px; }
-        
-        /* App Logo im Header */
-        .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; width: 100%; max-width: 500px; }
-        .app-logo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .app-title { font-size: 20px; font-weight: 800; color: var(--text); margin: 0; }
-
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 500px; overflow-x: auto; padding-bottom: 5px; }
-        .tab-btn { flex: 1; min-width: 80px; padding: 12px 5px; border-radius: 12px; border: none; cursor: pointer; background: var(--card-bg); color: var(--text); font-weight: bold; font-size: 11px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .tab-btn.active { background: var(--primary); color: white; }
+        :root { --bg: #000000; --card: #111111; --text: #ffffff; --border: #222222; --primary: #ffffff; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .auth-box { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 12px; text-align: center; }
+        #app-content { display: none; width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: #888; font-weight: bold; font-size: 11px; cursor: pointer; }
+        .tab-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
         .view { display: none; } .view.active { display: block; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select, textarea { padding: 14px; border: 2px solid var(--border); border-radius: 12px; background: var(--card-bg); color: var(--text); font-size: 16px; outline: none; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        .item { background: rgba(0,0,0,0.02); border: 1px solid var(--border); padding: 14px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .dark-mode .item { background: rgba(255,255,255,0.03); }
-        .grade-badge { padding: 5px 12px; border-radius: 8px; color: white; font-weight: bold; }
-        .g-good { background: var(--grade-1); } .g-ok { background: var(--grade-3); color: #2d3436; } .g-bad { background: var(--grade-5); }
-        
-        /* Stundenplan Styles */
-        .day-box { background: rgba(108, 92, 231, 0.05); border-radius: 15px; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .day-box.today { border: 2px solid var(--primary); background: rgba(108, 92, 231, 0.1); }
-        .day-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .sub-entry { font-size: 14px; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        
-        /* Admin */
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); z-index: 100; padding: 20px; border-radius: 24px; width: 95%; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 90; backdrop-filter: blur(8px); }
-        .admin-sec { background: rgba(0,0,0,0.03); padding: 12px; border-radius: 15px; margin-bottom: 15px; }
-        .dark-mode .admin-sec { background: rgba(255,255,255,0.05); }
-
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .container { padding: 15px; border-radius: 20px; }
-            .tab-btn { font-size: 10px; min-width: 70px; }
-            .app-title { font-size: 18px; }
-        }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 16px; margin-bottom: 20px; }
+        input, select { background: #1a1a1a; border: 1px solid var(--border); color: white; padding: 14px; border-radius: 10px; font-size: 16px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 14px; border-radius: 10px; font-weight: 800; width: 100%; cursor: pointer; }
+        .btn-small { background: none; border: 1px solid var(--border); color: #888; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; }
+        .item { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .day-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; border: 1px solid #333; padding: 25px; border-radius: 20px; width: 85%; max-width: 400px; z-index: 3000; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2500; backdrop-filter: blur(5px); }
     </style>
 </head>
-<body class="dark-mode">
+<body>
 
-    <div class="app-header">
-        <img src="https://i.imgur.com/8N4X0Uf.png" class="app-logo" alt="SchoolBase Logo">
-        <h1 class="app-title">SchoolBase Ultra</h1>
+    <div id="auth-screen">
+        <img src="https://i.imgur.com/8N4X0Uf.png" style="width:80px; margin-bottom:20px; border-radius:20px;">
+        <div class="auth-box">
+            <h1 style="letter-spacing:-1px;">SchoolBase</h1>
+            <input type="text" id="username" placeholder="Name">
+            <input type="password" id="password" placeholder="Passwort">
+            <button class="btn" onclick="login()">STARTEN</button>
+        </div>
     </div>
 
-    <div class="top-bar">
-        <button class="tab-btn" style="flex:0; padding: 8px 12px;" onclick="toggleDarkMode()">🌓 Mode</button>
-        <button class="tab-btn" style="flex:0; padding: 8px 12px; background:#2d3436; color:white;" onclick="openAdmin()">⚙️ Admin</button>
-    </div>
+    <div id="app-content">
+        <div class="header">
+            <div>
+                <div id="display-user" style="font-size:10px; color:#666; text-transform:uppercase;">User</div>
+                <h2 style="margin:0; letter-spacing:-1px;">SchoolBase</h2>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-small" onclick="openAdmin()">GEAR</button>
+                <button class="btn-small" onclick="location.reload()">LOGOUT</button>
+            </div>
+        </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="showView('hw-view', this)">📚 Hausaufgaben</button>
-        <button class="tab-btn" onclick="showView('exam-view', this)">📝 Arbeiten</button>
-        <button class="tab-btn" onclick="showView('grade-view', this)">⭐ Noten</button>
-        <button class="tab-btn" onclick="showView('plan-view', this)">📅 Plan</button>
-    </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showView('hw-view', this)">Hausaufgaben</button>
+            <button class="tab-btn" onclick="showView('ex-view', this)">Arbeiten</button>
+            <button class="tab-btn" onclick="showView('plan-view', this)">Plan</button>
+        </div>
 
-    <div class="container">
         <div id="hw-view" class="view active">
-            <h2>Hausaufgaben</h2>
-            <div class="input-group">
-                <input type="text" id="hw-task" placeholder="Aufgabe eintippen...">
-                <label style="font-size:13px; display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <input type="checkbox" id="no-hw-check" onclick="toggleNoHw()" style="width:18px; height:18px;"> Nichts aufbekommen ✅
-                </label>
-                <select id="hw-sub" class="subject-select"></select>
-                <button class="btn-add" onclick="addItem('hw')">Hinzufügen</button>
+            <div class="card">
+                <input type="text" id="hw-task" placeholder="Was ist zu tun?">
+                <select id="hw-sub" class="sub-select"></select>
+                <button class="btn" onclick="add('hw')">Hinzufügen</button>
             </div>
             <div id="hw-list"></div>
         </div>
 
-        <div id="exam-view" class="view">
-            <h2>Klassenarbeiten 📅</h2>
-            <div class="input-group">
-                <input type="text" id="exam-name" placeholder="Thema">
-                <input type="date" id="exam-date">
-                <select id="exam-sub" class="subject-select"></select>
-                <button class="btn-add" onclick="addItem('exam')">Speichern</button>
+        <div id="ex-view" class="view">
+            <div class="card">
+                <input type="text" id="ex-name" placeholder="Thema">
+                <input type="date" id="ex-date">
+                <select id="ex-sub" class="sub-select"></select>
+                <button class="btn" onclick="add('ex')">Speichern</button>
             </div>
-            <div id="exam-list"></div>
-        </div>
-
-        <div id="grade-view" class="view">
-            <h2>Dein Schnitt ⭐</h2>
-            <div id="avg-display" style="font-weight:bold; color:var(--primary); text-align:center; font-size:36px; background:rgba(108,92,231,0.1); padding:10px; border-radius:15px; margin-bottom:5px;">--</div>
-            <div id="motivation-text" style="text-align:center; margin-bottom:20px; font-weight:bold; font-size:14px; color:var(--accent); min-height:20px;"></div>
-            
-            <div class="input-group">
-                <input type="number" id="grade-val" placeholder="Note (1-6)" min="1" max="6" step="0.1">
-                <select id="grade-sub" class="subject-select"></select>
-                <button class="btn-add" onclick="addItem('grade')">Eintragen</button>
-            </div>
-            <div id="grade-list"></div>
+            <div id="ex-list"></div>
         </div>
 
         <div id="plan-view" class="view">
-            <h2>Stundenplan</h2>
-            <div id="timetable-display"></div>
+            <div id="plan-list"></div>
         </div>
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAdmin()"></div>
-    <div id="admin-panel" class="modal">
-        <h3 style="margin-top:0">Admin Center ⚙️</h3>
-        
-        <div class="admin-sec">
-            <h4>📅 Plan bearbeiten</h4>
-            <div id="plan-editor-fields"></div>
-            <button class="btn-add" style="width:100%; background:var(--accent); margin-top:10px;" onclick="savePlanFromAdmin()">Speichern</button>
-        </div>
-
-        <div class="admin-sec">
-            <h4>🏫 Fächer Liste</h4>
-            <div style="display:flex; gap:5px;"><input type="text" id="new-sub-input" placeholder="Neu..."><button onclick="addNewSubject()" class="btn-add" style="padding:10px;">+</button></div>
-            <div id="admin-sub-list" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
-        </div>
-
-        <button class="btn-add" style="background:#ff7675; width:100%" onclick="fullReset()">⚠️ Datenbank löschen</button>
-        <button onclick="closeAdmin()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--text); cursor:pointer;">Schließen</button>
+    <div id="admin-modal" class="modal">
+        <h3 style="margin-top:0">Einstellungen</h3>
+        <p style="font-size:11px; color:#666;">Fächer (mit Komma trennen):</p>
+        <input type="text" id="edit-subs">
+        <p style="font-size:11px; color:#666; margin-top:15px;">Plan (Mo-Fr):</p>
+        <div id="plan-edit-fields" style="max-height:200px; overflow-y:auto;"></div>
+        <button class="btn" style="margin-top:20px;" onclick="saveAdmin()">SPEICHERN</button>
     </div>
 
 <script>
-    const initData = {
-        hw: [], exams: [], grades: [], 
-        subjects: ["Mathe", "Deutsch", "Englisch", "Physik", "Bio", "Chemie", "Geschichte", "Musik", "Sport", "Arbeitslehre", "Geo", "Relie"],
-        plan: {
-            "Montag": "Deutsch, Deutsch, Mathe, Mathe, Englisch, KL-Stunde",
-            "Dienstag": "Mathe, Mathe, Geschichte, Geschichte, Englisch, Englisch",
-            "Mittwoch": "Englisch, Englisch, Bio, Bio, Musik, Musik",
-            "Donnerstag": "Deutsch, Deutsch, Sport, Sport, Arbeitslehre, Arbeitslehre",
-            "Freitag": "Geo, Geo, Relie, Relie, Deutsch, Mathe"
-        }
-    };
+    let currentUser = "";
+    let db = {};
 
-    let db = JSON.parse(localStorage.getItem('school_mega_v8') || JSON.stringify(initData));
+    function login() {
+        const u = document.getElementById('username').value.trim().toLowerCase();
+        const p = document.getElementById('password').value;
+        if(!u || !p) return alert("Login fehlt!");
+        currentUser = u;
+        document.getElementById('display-user').innerText = u;
+        const saved = localStorage.getItem('sb_pro_' + u);
+        db = saved ? JSON.parse(saved) : {
+            hw: [], ex: [], 
+            subs: ["Mathe", "Deutsch", "Englisch"],
+            plan: { "Montag": "", "Dienstag": "", "Mittwoch": "", "Donnerstag": "", "Freitag": "" }
+        };
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        render();
+    }
 
-    function showView(viewId, btn) {
+    function showView(id, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
+        document.getElementById(id).classList.add('active');
         btn.classList.add('active');
-        if(viewId === 'plan-view') renderTimetable();
     }
 
-    function toggleNoHw() {
-        const check = document.getElementById('no-hw-check');
-        document.getElementById('hw-task').value = check.checked ? "Keine Hausaufgaben ✅" : "";
-        document.getElementById('hw-task').disabled = check.checked;
-    }
-
-    function renderTimetable() {
+    function render() {
+        document.querySelectorAll('.sub-select').forEach(s => {
+            s.innerHTML = db.subs.map(sub => `<option>${sub}</option>`).join('');
+        });
+        document.getElementById('hw-list').innerHTML = db.hw.map(h => `<div class="item"><div><div style="font-size:10px; color:#666;">${h.sub}</div>${h.txt}</div><button class="btn-small" onclick="del('hw',${h.id})">×</button></div>`).join('');
+        document.getElementById('ex-list').innerHTML = (db.ex || []).map(e => `<div class="item"><div><div style="font-size:10px; color:#666;">${e.sub}</div>${e.txt} <small>(${e.date})</small></div><button class="btn-small" onclick="del('ex',${e.id})">×</button></div>`).join('');
+        
         const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-        const todayName = days[new Date().getDay()];
-        let html = "";
-        Object.keys(db.plan).forEach(day => {
-            const isToday = day === todayName;
-            const subs = db.plan[day].split(',').map(s => s.trim());
-            html += `<div class="day-box ${isToday ? 'today' : ''}">
-                <div class="day-title">${day} ${isToday ? '<span>(HEUTE)</span>' : ''}</div>
-                ${subs.map((s, idx) => s ? `<div class="sub-entry">${idx+1}. Std: <b>${s}</b></div>` : '').join('')}
-            </div>`;
-        });
-        document.getElementById('timetable-display').innerHTML = html;
+        const today = days[new Date().getDay()];
+        document.getElementById('plan-list').innerHTML = Object.keys(db.plan).map(d => `
+            <div class="day-box" style="${d === today ? 'border-color:#555;' : ''}">
+                <div style="font-weight:bold; margin-bottom:10px;">${d} ${d === today ? '•' : ''}</div>
+                ${db.plan[d] ? db.plan[d].split(',').map((s,i) => `<div style="font-size:13px; color:#888; padding:4px 0;">${i+1}. Std: <b style="color:#fff;">${s.trim()}</b></div>`).join('') : '<div style="font-size:12px; color:#444;">Noch kein Plan eingetragen.</div>'}
+            </div>
+        `).join('');
     }
 
-    function addItem(type) {
+    function add(type) {
         if(type === 'hw') {
-            const t = document.getElementById('hw-task').value;
-            if(!t) return;
-            db.hw.unshift({id: Date.now(), text: t, sub: document.getElementById('hw-sub').value});
+            const txt = document.getElementById('hw-task').value;
+            if(!txt) return;
+            db.hw.unshift({id: Date.now(), txt, sub: document.getElementById('hw-sub').value});
             document.getElementById('hw-task').value = "";
-            document.getElementById('no-hw-check').checked = false;
-            document.getElementById('hw-task').disabled = false;
-        } else if(type === 'exam') {
-            const n = document.getElementById('exam-name').value;
-            const d = document.getElementById('exam-date').value;
-            if(!n || !d) return;
-            db.exams.push({id: Date.now(), text: n, date: d, sub: document.getElementById('exam-sub').value});
-        } else if(type === 'grade') {
-            const g = document.getElementById('grade-val').value;
-            if(!g || g < 1 || g > 6) return;
-            db.grades.push({id: Date.now(), val: parseFloat(g), sub: document.getElementById('grade-sub').value});
+        } else {
+            const txt = document.getElementById('ex-name').value;
+            const date = document.getElementById('ex-date').value;
+            if(!txt || !date) return;
+            if(!db.ex) db.ex = [];
+            db.ex.push({id: Date.now(), txt, date, sub: document.getElementById('ex-sub').value});
         }
-        save(); renderAll();
+        save(); render();
     }
 
-    function renderAll() {
-        document.querySelectorAll('.subject-select').forEach(s => {
-            const cur = s.value;
-            s.innerHTML = db.subjects.map(sub => `<option value="${sub}">${sub}</option>`).join('');
-            if(cur) s.value = cur;
-        });
-
-        document.getElementById('hw-list').innerHTML = db.hw.map(i => `<div class="item"><span><b>${i.sub}:</b> ${i.text}</span><span onclick="remove('hw', ${i.id})">🗑️</span></div>`).join('');
-        document.getElementById('exam-list').innerHTML = db.exams.map(i => `<div class="item"><div><b>${i.sub}</b><br><small>${i.date}</small></div><span onclick="remove('exams', ${i.id})">🗑️</span></div>`).join('');
-        document.getElementById('grade-list').innerHTML = db.grades.map(i => {
-            let c = i.val <= 2.0 ? 'g-good' : (i.val <= 4.0 ? 'g-ok' : 'g-bad');
-            return `<div class="item"><span>${i.sub}</span><div style="display:flex; gap:10px;"><span class="grade-badge ${c}">${i.val}</span><span onclick="remove('grades', ${i.id})">🗑️</span></div></div>`;
-        }).join('');
-
-        if(db.grades.length > 0) {
-            const avg = (db.grades.reduce((a, b) => a + b.val, 0) / db.grades.length).toFixed(2);
-            document.getElementById('avg-display').innerText = avg;
-            updateMotivation(parseFloat(avg));
-        }
-    }
-
-    function updateMotivation(avg) {
-        let msg = "";
-        if(avg <= 1.5) msg = "Legendär! Du bist der Boss. 👑";
-        else if(avg <= 2.5) msg = "Richtig stark, bleib dran! 🔥";
-        else if(avg <= 3.5) msg = "Ganz okay, da geht noch was! 💪";
-        else if(avg <= 4.5) msg = "Kopf hoch, wird wieder! 📚";
-        else msg = "Jetzt musst du Gas geben! 🚀";
-        document.getElementById('motivation-text').innerText = msg;
+    function del(type, id) {
+        db[type] = db[type].filter(i => i.id !== id);
+        save(); render();
     }
 
     function openAdmin() {
-        if(prompt("Passwort?") === "AdminPanelPasswort123!") {
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('overlay').style.display = 'block';
-            let planHtml = "";
-            Object.keys(db.plan).forEach(day => {
-                planHtml += `<div style="margin-bottom:8px;"><b>${day}:</b><textarea id="edit-plan-${day}" style="width:100%; height:35px; font-size:12px;">${db.plan[day]}</textarea></div>`;
-            });
-            document.getElementById('plan-editor-fields').innerHTML = planHtml;
-            document.getElementById('admin-sub-list').innerHTML = db.subjects.map(s => `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:6px; font-size:11px; margin:2px;">${s} <b onclick="removeSubject('${s}')" style="cursor:pointer">×</b></span>`).join('');
-        }
+        const pass = prompt("Passwort?");
+        if(pass !== "1234") return alert("Falsch!");
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('admin-modal').style.display = 'block';
+        document.getElementById('edit-subs').value = db.subs.join(', ');
+        document.getElementById('plan-edit-fields').innerHTML = Object.keys(db.plan).map(d => `
+            <div style="margin-bottom:10px;">${d}<input type="text" id="p-${d}" value="${db.plan[d]}" style="margin-bottom:0;"></div>
+        `).join('');
     }
 
-    function savePlanFromAdmin() {
-        Object.keys(db.plan).forEach(day => { db.plan[day] = document.getElementById(`edit-plan-${day}`).value; });
-        save(); alert("Gespeichert!"); renderTimetable();
+    function saveAdmin() {
+        db.subs = document.getElementById('edit-subs').value.split(',').map(s => s.trim()).filter(s => s !== "");
+        Object.keys(db.plan).forEach(d => { db.plan[d] = document.getElementById('p-'+d).value; });
+        save(); render(); closeAdmin();
     }
 
-    function addNewSubject() {
-        const v = document.getElementById('new-sub-input').value.trim();
-        if(v && !db.subjects.includes(v)) { db.subjects.push(v); save(); renderAll(); openAdmin(); }
-    }
-
-    function removeSubject(sub) { db.subjects = db.subjects.filter(s => s !== sub); save(); renderAll(); openAdmin(); }
-    function remove(type, id) { db[type] = db[type].filter(i => i.id !== id); save(); renderAll(); }
-    function save() { localStorage.setItem('school_mega_v8', JSON.stringify(db)); }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-    function fullReset() { if(confirm("ALLES LÖSCHEN?")) { localStorage.clear(); location.reload(); } }
-    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
-
-    renderAll(); renderTimetable();
+    function save() { localStorage.setItem('sb_pro_' + currentUser, JSON.stringify(db)); }
+    function closeAdmin() { document.getElementById('overlay').style.display = 'none'; document.getElementById('admin-modal').style.display = 'none'; }
 </script>
 </body>
 </html>
